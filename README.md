@@ -37,4 +37,4 @@ This is a Tomcat Filter to modify requested m3u8 in Ant Media Server as filterin
 
   http://localhost:5080/LiveApp/streams/test.m3u8?start=1668454888&end=1668454999
   
-**Note:** m3u8 files should contain program date time. To enable the following line you should add the following to the application configuration `settings.hlsflags=+program_date_time` Please check [this](https://antmedia.io/javadoc/io/antmedia/AppSettings.html#hlsflags) for more information.
+**Note:** m3u8 files should contain program date time. To enable the in AMS, you should add the following line into the application configuration file `settings.hlsflags=+program_date_time` Please check [this](https://antmedia.io/javadoc/io/antmedia/AppSettings.html#hlsflags) for more information.
