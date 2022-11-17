@@ -6,7 +6,7 @@ This is a Tomcat Filter to modify requested m3u8 in Ant Media Server as filterin
 
   `mvn clean install -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -Dgpg.skip=true`
 
-- After building the parent project you can build filter project with the sam3 maven command:
+- After building the parent project you can build filter project with the same maven command:
   
   `mvn clean install -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -Dgpg.skip=true`
 
