@@ -2,8 +2,12 @@
 This is a Tomcat Filter to modify requested m3u8 in Ant Media Server as filtering the chunks between provided start and end date. You can use this filter for the VoD files serverd by AMS.  
 
 # Build
-- build plugin
+- To build Plugin you should first clone and build [ant-media-server-parent](https://github.com/ant-media/ant-media-server-parent) project. You can build it with the following maven command:
 
+  `mvn clean install -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -Dgpg.skip=true`
+
+- After building the parent project you can build filter project with the sam3 maven command:
+  
   `mvn clean install -Dmaven.javadoc.skip=true -Dmaven.test.skip=true -Dgpg.skip=true`
 
 - copy plugin jar file
