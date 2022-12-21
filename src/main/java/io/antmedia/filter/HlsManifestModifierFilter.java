@@ -32,7 +32,7 @@ public class HlsManifestModifierFilter implements Filter {
 
 
 		HttpServletRequest httpRequest =(HttpServletRequest)request;
-		
+
 		String method = httpRequest.getMethod();
 		if (HttpMethod.GET.equals(method) && httpRequest.getRequestURI().endsWith("m3u8")) {
 			//only accept GET methods
@@ -40,69 +40,73 @@ public class HlsManifestModifierFilter implements Filter {
 
 			String startDate = ((HttpServletRequest) request).getParameter("start");
 			String endDate = ((HttpServletRequest) request).getParameter("end");
-			
-			long start = Long.parseLong(startDate);
-			long end = Long.parseLong(endDate);
+			if(startDate == null || endDate == null || startDate.isBlank() || endDate.isBlank()) {
+				chain.doFilter(httpRequest, response);
+			}
+			else {
+				long start = Long.parseLong(startDate);
+				long end = Long.parseLong(endDate);
 
 
-			ContentCachingResponseWrapper responseWrapper = new ContentCachingResponseWrapper((HttpServletResponse) response);
+				ContentCachingResponseWrapper responseWrapper = new ContentCachingResponseWrapper((HttpServletResponse) response);
 
-					
-			chain.doFilter(request, responseWrapper);
 
-			int status =responseWrapper.getStatus();
+				chain.doFilter(request, responseWrapper);
 
-			if (HttpServletResponse.SC_OK <= status && status <= HttpServletResponse.SC_BAD_REQUEST) 
-			{				
-				try {
-		            // Get the original response data
-		            final byte[] originalData = responseWrapper.getContentAsByteArray();
-		            final int originalLength = responseWrapper.getContentSize();
-		            
-		            String original = new String(originalData);
-		            
-		            MediaPlaylistParser parser = new MediaPlaylistParser();
-		            MediaPlaylist playList = parser.readPlaylist(original);
-		            
-		            List<MediaSegment> segments = new ArrayList<MediaSegment>();
+				int status =responseWrapper.getStatus();
 
-		            for (MediaSegment s : playList.mediaSegments()) {
-		            	long time = s.programDateTime().get().toEpochSecond();
-		            	if(time >= start && time <= end) {
-		            		segments.add(MediaSegment.builder()
-		            				.duration(s.duration())
-		            				.uri(s.uri())
-		            				.build());
-		            	}
+				if (HttpServletResponse.SC_OK <= status && status <= HttpServletResponse.SC_BAD_REQUEST) 
+				{				
+					try {
+						// Get the original response data
+						final byte[] originalData = responseWrapper.getContentAsByteArray();
+						final int originalLength = responseWrapper.getContentSize();
+
+						String original = new String(originalData);
+
+						MediaPlaylistParser parser = new MediaPlaylistParser();
+						MediaPlaylist playList = parser.readPlaylist(original);
+
+						List<MediaSegment> segments = new ArrayList<MediaSegment>();
+
+						for (MediaSegment s : playList.mediaSegments()) {
+							long time = s.programDateTime().get().toEpochSecond();
+							if(time >= start && time <= end) {
+								segments.add(MediaSegment.builder()
+										.duration(s.duration())
+										.uri(s.uri())
+										.build());
+							}
+						}
+
+						MediaPlaylist newPlayList = MediaPlaylist.builder()
+								.version(playList.version())
+								.targetDuration(playList.targetDuration())
+								.ongoing(false)
+								.addAllMediaSegments(segments)
+								.build();
+
+						// Modify the original data
+						MediaPlaylistParser parser2 = new MediaPlaylistParser();
+
+						final String newData = parser2.writePlaylistAsString(newPlayList);
+
+						// Write the data into the output stream
+						response.setContentLength(newData.length());
+						response.getOutputStream().write(newData.getBytes());
+
+						// Commit the written data
+						response.getWriter().flush();
+
+					} catch (Exception e) {
+						response.setContentLength(responseWrapper.getContentSize());
+						response.getOutputStream().write(responseWrapper.getContentAsByteArray());
+						response.flushBuffer();
+
+					} finally {
+						//NOOP
 					}
-		            
-		            MediaPlaylist newPlayList = MediaPlaylist.builder()
-                    .version(playList.version())
-                    .targetDuration(playList.targetDuration())
-                    .ongoing(false)
-                    .addAllMediaSegments(segments)
-                    .build();
-		            
-		            // Modify the original data
-		            MediaPlaylistParser parser2 = new MediaPlaylistParser();
-
-		            final String newData = parser2.writePlaylistAsString(newPlayList);
-
-		            // Write the data into the output stream
-		            response.setContentLength(newData.length());
-		            response.getOutputStream().write(newData.getBytes());
-
-		            // Commit the written data
-		            response.getWriter().flush();
-
-		        } catch (Exception e) {
-		            response.setContentLength(responseWrapper.getContentSize());
-		            response.getOutputStream().write(responseWrapper.getContentAsByteArray());
-		            response.flushBuffer();
-
-		        } finally {
-		            //NOOP
-		        }
+				}
 			}
 		}
 		else {
@@ -114,13 +118,13 @@ public class HlsManifestModifierFilter implements Filter {
 	@Override
 	public void init(FilterConfig filterConfig) throws ServletException {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void destroy() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 
